@@ -739,40 +739,146 @@ export default function AssessmentFlow() {
               const cefrDesc = CEFR_DESC[cefrLabel] || "";
               const hasOverall = !!res;
               return hasOverall ? (
-                <div className="p-4 rounded-xl border bg-white/80">
-                  <div className="font-semibold mb-2">Overall Result</div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">CEFR</span>
-                    <span className="inline-flex items-center gap-2 bg-black text-white rounded-full px-3 py-1 shadow-sm">
-                      <span className="font-semibold tracking-wide">{cefrLabel}</span>
-                      <span className="opacity-90">{cefrDesc}</span>
-                    </span>
+                <div className="p-6 mb-8 rounded-2xl border border-gray-200 bg-white shadow-xl bg-gradient-to-br from-white to-slate-50 relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-2 h-full bg-blue-600"></div>
+                  <h2 className="text-xl font-bold mb-1 text-gray-800">Overall Proficiency</h2>
+                  <p className="text-gray-500 text-sm mb-4">Based on your performance across all tasks</p>
+                  <div className="flex items-center gap-4">
+                    <div className="flex flex-col items-center justify-center w-24 h-24 rounded-full border-4 border-blue-500 bg-blue-50 shadow-inner">
+                      <span className="text-3xl font-extrabold text-blue-700">{cefrLabel}</span>
+                    </div>
+                    <div>
+                      <span className="block text-2xl font-bold text-gray-800">{cefrDesc}</span>
+                      <span className="block text-sm text-gray-500 mt-1">Common European Framework of Reference</span>
+                    </div>
                   </div>
                 </div>
               ) : null;
             })()}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+            <div className="flex flex-col gap-6">
               {uploaded.map((u, i) => {
                 const recId = u?.rekaman?.id;
                 const res = recId ? scoreResults[recId] : null;
                 const transcript = res?.transcript || "";
-                const shortTr = transcript.length > 140 ? transcript.slice(0, 140) + "…" : transcript;
+                const features = res?.features || {};
+                const inter = res?.interpreted || {};
+                
+                // Subconstructs
+                const subconstructs = [
+                  { key: "Fluency", color: "bg-emerald-500", bg: "bg-emerald-100", text: "text-emerald-700" },
+                  { key: "Pronunciation", color: "bg-cyan-500", bg: "bg-cyan-100", text: "text-cyan-700" },
+                  { key: "Prosody", color: "bg-indigo-500", bg: "bg-indigo-100", text: "text-indigo-700" },
+                  { key: "Coherence and Cohesion", label: "Coherence", color: "bg-purple-500", bg: "bg-purple-100", text: "text-purple-700" },
+                  { key: "Topic Relevance", label: "Relevance", color: "bg-pink-500", bg: "bg-pink-100", text: "text-pink-700" },
+                  { key: "Complexity", color: "bg-orange-500", bg: "bg-orange-100", text: "text-orange-700" },
+                  { key: "Accuracy", color: "bg-red-500", bg: "bg-red-100", text: "text-red-700" }
+                ];
+
                 return (
-                  <div key={i} className="p-3 rounded border bg-white/60">
-                    <div className="font-semibold">{u.tugas?.judul}</div>
-                    <audio src={URL.createObjectURL(u.file)} controls className="w-full mt-2" />
-                    {/* Hide transcript for Task 1; optional for others */}
-                    {transcript && u?.stepIndex !== 1 ? (
-                      <div className="mt-2 text-xs text-gray-700">
-                        <div className="font-medium text-gray-800 mb-1">Transcript</div>
-                        <div className="whitespace-pre-wrap">{shortTr}</div>
+                  <div key={i} className="rounded-2xl border border-gray-100 bg-white/80 shadow-md backdrop-blur-sm overflow-hidden transition-all hover:shadow-lg">
+                    {/* Header */}
+                    <div className="p-5 border-b border-gray-100 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold tracking-wide uppercase">
+                            Task {i + 1}
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold tracking-wide uppercase">
+                            {u.tugas?.kategori || "FreeSpeech"}
+                          </span>
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-800">{u.tugas?.judul || "Speaking Task"}</h3>
                       </div>
-                    ) : null}
+                      <audio src={URL.createObjectURL(u.file)} controls className="h-10 w-full md:w-64 outline-none" />
+                    </div>
+
+                    {res ? (
+                      <div className="p-5 flex flex-col lg:flex-row gap-6">
+                        {/* Left column: Key features */}
+                        <div className="flex-1">
+                          <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            Key Features
+                          </h4>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {[
+                              { label: "Duration", val: `${(features["Durasi (s)"] || 0).toFixed(1)}s` },
+                              { label: "Words", val: features["Total Words"] || 0 },
+                              { label: "WPM", val: Math.round(features["WPM"] || 0) },
+                              { label: "Grammar Err", val: features["Grammar Errors"] || 0 },
+                              { label: "TTR", val: (features["TTR"] || 0).toFixed(2) },
+                              { label: "Idioms", val: features["Idioms Found"] || 0 },
+                            ].map((stat, idx) => (
+                              <div key={idx} className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex flex-col justify-center items-center text-center">
+                                <span className="text-xs text-slate-500 mb-1">{stat.label}</span>
+                                <span className="text-lg font-bold text-slate-800">{stat.val}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          {transcript && u?.stepIndex !== 1 && (
+                            <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Transcript</span>
+                              <p className="text-sm text-slate-700 leading-relaxed italic block line-clamp-3 hover:line-clamp-none transition-all duration-300">
+                                "{transcript}"
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Right column: Subconstructs */}
+                        <div className="flex-1 lg:pl-6 lg:border-l lg:border-gray-100">
+                          <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            Subconstruct Predictions
+                          </h4>
+                          <div className="space-y-3">
+                            {subconstructs.map((sub, idx) => {
+                              const scoreObj = inter[sub.key];
+                              if (!scoreObj) return null;
+                              
+                              const label = scoreObj.label || "-";
+                              const val = scoreObj.value || 0;
+                              // Approximate percentage based on value if it's confidence, or mock it if CEFR level
+                              // Vercel output usually gives probability in `value`.
+                              const pct = Math.min(100, Math.max(0, val * 100));
+                              
+                              return (
+                                <div key={idx} className="group">
+                                  <div className="flex justify-between items-end mb-1">
+                                    <span className="text-sm font-medium text-gray-700">{sub.label || sub.key}</span>
+                                    <span className={`text-xs px-2 py-0.5 rounded-md font-bold ${sub.bg} ${sub.text}`}>
+                                      {label} <span className="ml-1 opacity-70">({pct.toFixed(1)}%)</span>
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                                    <div 
+                                      className={`h-2.5 rounded-full ${sub.color} transition-all duration-1000 ease-out`} 
+                                      style={{ width: `${pct}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-6 flex flex-col items-center justify-center text-gray-400 bg-slate-50/50">
+                        <svg className="animate-spin -ml-1 mr-3 h-6 w-6 text-gray-400 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span className="text-sm">Processing results...</span>
+                      </div>
+                    )}
                   </div>
                 );
               })}
             </div>
-            <div className="flex items-center gap-2">
+            
+            <div className="flex justify-center mt-8">
               {(() => {
                 const task1 = uploaded.find((u) => u?.stepIndex === 1);
                 const rec1 = task1?.rekaman?.id;
@@ -788,12 +894,25 @@ export default function AssessmentFlow() {
                       setUploaded([]);
                       setMahasiswa(null);
                       setStep(0);
-                    }} className="rounded-lg bg-black hover:bg-neutral-800 transition text-white px-5 py-2.5 shadow">Finish</button>
+                    }} className="rounded-xl bg-black hover:bg-neutral-800 transition-all text-white px-8 py-3.5 shadow-lg font-bold tracking-wide flex items-center gap-2">
+                       Finish Assessment 
+                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                    </button>
                   );
                 }
                 return (
-                  <button onClick={runScoring} disabled={scoring || !task1} className="rounded-lg bg-black hover:bg-neutral-800 transition text-white px-5 py-2.5 shadow">
-                    {scoring ? "Processing..." : "Process"}
+                  <button onClick={runScoring} disabled={scoring || !task1} className="rounded-xl bg-blue-600 hover:bg-blue-700 transition-all text-white px-8 py-3.5 shadow-lg shadow-blue-200 font-bold tracking-wide flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    {scoring ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                        Processing Results...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Process Analysis
+                      </>
+                    )}
                   </button>
                 );
               })()}
